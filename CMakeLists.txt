@@ -9,7 +9,7 @@
 
 cmake_minimum_required(VERSION 3.26)
 
-project(DELPHI-EDM4Hep VERSION 0.1 LANGUAGES CXX)
+project(DELPHI-EDM4HEP VERSION 0.1 LANGUAGES CXX Fortran)
 set (CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
@@ -31,21 +31,12 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(yaml-cpp)
 
-add_executable(delphi-edm4hep 
-    src/main.cxx
-    src/EDM4HepWriter.cxx
+#fetch spdlog
+FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG v1.x
 )
+FetchContent_MakeAvailable(spdlog)
 
-# version header
-add_custom_target(version ALL
-    COMMAND ${CMAKE_COMMAND} 
-      -D PROJECT_SOURCE_DIR=${CMAKE_SOURCE_DIR}
-      -D SRC=${CMAKE_SOURCE_DIR}/include/delphi-nanoaod_version.hpp.in
-      -D DST=${CMAKE_BINARY_DIR}/include/delphi-nanoaod_version.hpp 
-      -P ${CMAKE_SOURCE_DIR}/cmake/version.cmake
-    COMMENT "Creating version header"
-    VERBATIM
-    )
-
-add_dependencies(delphi-edm4hep version)
-
+add_subdirectory(src)

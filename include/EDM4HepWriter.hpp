@@ -1,6 +1,7 @@
 #pragma once
 
-#include "phdst/Analysis.hxx"
+#include <string>
+#include <vector>
 
 class EDM4HepWriter {
 
@@ -19,6 +20,11 @@ public:
     // Destructor
     ~EDM4HepWriter() = default; 
     
+    void addPDLInput(const std::string& line);
+    void setOutput(const std::string& output);
+    void setMaxEvents(int maxEvents);
+    void setSkelanaFlag(const std::string& options, const int value);
+
     int runAnalysis(const std::string& options = " ");
 
     // User methods that can be called from Fortran
@@ -27,13 +33,9 @@ public:
     void user02();
     void user99();
 
-    static EDM4HepWriter& instance();
-}
+    std::vector<std::string> pdl_input_lines_;
+    int max_events_ = -1; // Default to all events
 
-// C wrapper functions for Fortran interface
-extern "C" {
-    void user00_();
-    void user01_(int * need);
-    void user02_();
-    void user99_();
-}
+    static EDM4HepWriter& instance();
+};
+

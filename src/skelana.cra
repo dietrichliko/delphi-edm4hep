@@ -1,0 +1,11 @@
++OPTION VERbose
++USE, P=PHDSTCDE.
++PAM, 11, T=A,C, R=PHDSTCDE.   (DELPHI_PAM)/phdstxx.car
+% Patch for crash in BBXID
++USE, P=BBXID, D=BBMSC, T=EXE.
++REPL, P=BBXID, D=BBMSC, L=35.
+C      WRITE(*,*) 'LSH = ', LSH
+C      IF (LSH .GE. 0) WRITE(*,*) 'IQ(LSH+4) = ', IQ(LSH+4)
+      IF (LSH .GE. 0 .AND. IQ(LSH+4) .GE. 0) THEN
++PAM, 11, T=A,C.               (DELPHI_PAM)/dedxid.car
++QUIT.

@@ -1,0 +1,30 @@
+---
+# dummy
+skelana_flags:
+  IFLTRA: 1  # fill track information
+  IFLODR: 1  # reorder tracks - first charged then neutral
+  IFLVEC: 22 # fill VECP
+  IFLSTR: 11 # track selection
+  IFLCUT: 3  # track selection cuts
+  IFLRVR: 111  # recovery routine
+  IFLSIM: 1  # fill simulation information
+  IFLBSP: 2  # beamspot information  
+  IFLBTG: 2  # rerun btag
+  IFLPVT: 1  # primary vertex from btag 
+  IFLVDR: 1  # refit VD with Z tracks with PV constraint
+  IFLFCT: 1  # refit VD with Z tracks with PV constraint
+  IFLRNQ: 0  # no run quality selectiomn  
+  IFLBHP: 1  # skip bad 1997 HPC events
+  IFLUTE: 0  # unassociated TE banks
+  IFLVDH: 0  # Vertex Detector Hits  
+  IFLMUO: 0  # Muon Identification
+  IFLECL: 2  # Em Cluster Information
+  IFLELE: 1  # ELEPHANT Electron Identification 
+  IFLEMC: 1  # Electromagnetic Calorimeter Information 
+  IFLPHO: 1  # Photon Information
+  IFLPHC: 1  # Photon     Conversion 
+  IFLSTC: 1  # STIC information      
+  IFLHAC: 1  # Hadron Calorimetry
+  IFLHAD: 1  # Hadron Identification
+  IFLRVO: 1  # V0 Reconstruction
+  IFLJET: 0  # Jet Reconstruction Algorithm
