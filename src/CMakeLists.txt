@@ -3,6 +3,7 @@ ypatchy(skelana.f ${CMAKE_CURRENT_SOURCE_DIR}/skelana.cra)
 add_executable(delphi-edm4hep 
     main.cpp
     EDM4HepWriter.cpp
+    skelana_functions.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/skelana.f
 )
 target_include_directories(delphi-edm4hep PRIVATE ${CMAKE_SOURCE_DIR}/include)
@@ -26,6 +27,9 @@ add_custom_target(version ALL
     COMMENT "Creating version header"
     VERBATIM
     )
+
+target_include_directories(delphi-edm4hep PUBLIC ${EDM4HEP_INCLUDE_DIR·})
+target_link_libraries(delphi-edm4hep EDM4HEP::edm4hep podio::podioRootIO)
 
 add_dependencies(delphi-edm4hep version)
 target_include_directories(delphi-edm4hep PRIVATE ${CMAKE_BINARY_DIR}/include) # version header

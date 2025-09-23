@@ -12,9 +12,10 @@ cmake_minimum_required(VERSION 3.26)
 project(DELPHI-EDM4HEP VERSION 0.1 LANGUAGES CXX Fortran)
 set (CMAKE_CXX_STANDARD 17)
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-find_package(DELPHI REQUIRED)
+find_package(DELPHI)
+find_package(EDM4HEP)
 
 # fetch argparse
 include(FetchContent)
@@ -31,7 +32,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(yaml-cpp)
 
-#fetch spdlog
+# fetch spdlog
 FetchContent_Declare(
     spdlog
     GIT_REPOSITORY https://github.com/gabime/spdlog.git

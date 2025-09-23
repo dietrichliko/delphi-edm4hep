@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 REPO_ROOT="$( cd -- "$SCRIPT_DIR/.." &> /dev/null && pwd )"
 
-WORK_DIR="/afs/cern.ch/work/${USER:0:1}/${USER}/delphi-edm4hep"
+WORK_DIR="$(mktemp -d "/afs/cern.ch/work/${USER:0:1}/${USER}/delphi-edm4hep_XXXXX")"
 mkdir -p "$WORK_DIR"
 cd "$WORK_DIR" || exit 1
 
@@ -14,3 +14,5 @@ cd "$WORK_DIR" || exit 1
      -o "test-edm4hep.root" \
      -m 100 \
      -i /eos/experiment/delphi/castor2015/tape/Y13709/Y13709.1.al
+
+find "$PWD"

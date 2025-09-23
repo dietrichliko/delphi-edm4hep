@@ -7,42 +7,40 @@ namespace skelana
 {
     void SET_FLAG(const std::string &options, int value)
     {
-        inline static std::map<std::string, int*> option_map =  {
+        static std::map<std::string, int*> option_map =  {
             {"IFLTRA", &pscflg_.ifltra},
-            {"IFLFIX", &pscflg_.iflfix},
-            {"IFLRNQ", &pscflg_.iflrnq},
+            {"IFLODR", &pscflg_.iflodr},
+            {"IFLVEC", &pscflg_.iflvec},
             {"IFLSTR", &pscflg_.iflstr},
-            {"IFLJET", &pscflg_.ifljet},
+            {"IFLCUT", &pscflg_.iflcut},
+            {"IFLRVR", &pscflg_.iflrvr},
             {"IFLSIM", &pscflg_.iflsim},
             {"IFLBSP", &pscflg_.iflbsp},
             {"IFLBTG", &pscflg_.iflbtg},
-            {"IFLEMC", &pscflg_.iflemc},
-            {"IFLHAC", &pscflg_.iflhac},
-            {"IFLSTC", &pscflg_.iflstc},
-            {"IFLELE", &pscflg_.iflele},
-            {"IFLPHO", &pscflg_.iflpho},
-            {"IFLMUO", &pscflg_.iflmuo},
-            {"IFLHAD", &pscflg_.iflhad},
-            {"IFLVDH", &pscflg_.iflvdh},
-            {"IFLRV0", &pscflg_.iflrv0},
-            {"IFLUTE", &pscflg_.iflute},
-            {"IFLPHC", &pscflg_.iflphc},
-            {"IFLVEC", &pscflg_.iflvec},
-            {"IFLBHP", &pscflg_.iflbhp},
-            {"IFLECL", &pscflg_.iflecl},
-            {"IFLRVR", &pscflg_.iflrvr},
-            {"IFLODR", &pscflg_.iflodr},
             {"IFLPVT", &pscflg_.iflpvt},
-            {"IFLCUT", &pscflg_.iflcut},
             {"IFLVDR", &pscflg_.iflvdr},
             {"IFLFCT", &pscflg_.iflfct},
-            {"IFLENR", &pscflg_.iflenr}
+            {"IFLRNQ", &pscflg_.iflrnq},
+            {"IFLBHP", &pscflg_.iflbhp},
+            {"IFLUTE", &pscflg_.iflute},
+            {"IFLVDH", &pscflg_.iflvdh},
+            {"IFLMUO", &pscflg_.iflmuo},
+            {"IFLECL", &pscflg_.iflecl},
+            {"IFLELE", &pscflg_.iflele},
+            {"IFLEMC", &pscflg_.iflemc},
+            {"IFLPHO", &pscflg_.iflpho},
+            {"IFLPHC", &pscflg_.iflphc},
+            {"IFLSTC", &pscflg_.iflstc},
+            {"IFLHAC", &pscflg_.iflhac},
+            {"IFLHAD", &pscflg_.iflhad},
+            {"IFLRV0", &pscflg_.iflrv0},
+            {"IFLJET", &pscflg_.ifljet}
         };
         auto it = option_map.find(options);
         if (it != option_map.end()) {
             *(it->second) = value;
         } else {
             throw std::invalid_argument("Unknown option: " + options);
-        
+        }
     }
 }

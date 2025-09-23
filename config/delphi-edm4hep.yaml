@@ -1,5 +1,6 @@
 ---
-# dummy
+# Configuration file for DELPHI -> EDM4HEP conversion
+# using SKALEANA package for DELPHI data analysis
 skelana_flags:
   IFLTRA: 1  # fill track information
   IFLODR: 1  # reorder tracks - first charged then neutral
@@ -26,5 +27,5 @@ skelana_flags:
   IFLSTC: 1  # STIC information      
   IFLHAC: 1  # Hadron Calorimetry
   IFLHAD: 1  # Hadron Identification
-  IFLRVO: 1  # V0 Reconstruction
+  IFLRV0: 1  # V0 Reconstruction
   IFLJET: 0  # Jet Reconstruction Algorithm

@@ -2,12 +2,14 @@
 
 namespace phdst
 {
-    extern "C" struct
+    struct uxcom_t
     {
         int uxfenv[10];
         int luxstr[30];
         int luxref[30];
-    } uxcom_;
+    }; 
+    
+    extern "C" uxcom_t uxcom_;
 
     inline int &LQ(int i) { return uxcom_.luxstr[i - 1]; }
     inline int &IQ(int i) { return uxcom_.luxstr[i + 7]; }

@@ -11,6 +11,8 @@ namespace skelana
     extern "C" void psbhpc_();
     extern "C" void dstqid_(char *, size_t);
 
+    void SET_FLAG(const std::string &options, int value);
+
     inline void PSINI() { psini_(); }
     inline void PSBEG() { psbeg_(); }
     inline void PSRUNQ(int &&n) { psrunq_(&n); }
@@ -36,5 +38,5 @@ namespace skelana
 
         return std::string(name, len);
     }
-    void SET_FLAG(const std::string &options, int value)
+
  }
