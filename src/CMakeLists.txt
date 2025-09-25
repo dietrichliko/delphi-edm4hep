@@ -28,7 +28,7 @@ add_custom_target(version ALL
     VERBATIM
     )
 
-target_include_directories(delphi-edm4hep PUBLIC ${EDM4HEP_INCLUDE_DIR·})
+target_include_directories(delphi-edm4hep PUBLIC ${EDM4HEP_INCLUDE_DIR})
 target_link_libraries(delphi-edm4hep EDM4HEP::edm4hep podio::podioRootIO)
 
 add_dependencies(delphi-edm4hep version)

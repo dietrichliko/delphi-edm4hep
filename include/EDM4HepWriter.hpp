@@ -12,9 +12,6 @@ private:
     std::string output_file_ = "output.edm4hep.root";    
     std::vector<std::string> pdl_input_lines_;
     int max_events_ = -1; // Default to all events
-    int file_number_;
-    int last_run_number_ = -1;
-    int last_file_number_ = -1;
     std::unique_ptr<podio::ROOTWriter> writer_;
 
     // Private constructor for singleton
@@ -26,10 +23,9 @@ private:
     EDM4HepWriter(EDM4HepWriter&&) = delete;
     EDM4HepWriter& operator=(EDM4HepWriter&&) = delete;
 
-    podio::Frame createRunFrame();
-    podio::Frame createEventFrame();
+    void fillEventFrame(podio::Frame& eventFrame);
 
-    bool is_mc() const();
+    bool is_mc() const;
 
 public:
     // Destructor
