@@ -42,7 +42,7 @@ function(target_link_cernlibs TARGET)
         OUTPUT_VARIABLE CERNLIBS
         OUTPUT_STRIP_TRAILING_WHITESPACE
         )
-    target_link_libraries(${TARGET} ${CERNLIBS})
+    target_link_libraries(${TARGET} PRIVATE ${CERNLIBS})
 
 endfunction()
 
@@ -54,6 +54,6 @@ function(target_link_dellibs TARGET)
         OUTPUT_VARIABLE DELLIBS
         OUTPUT_STRIP_TRAILING_WHITESPACE
         )
-    target_link_libraries(${TARGET} ${DELLIBS})
+    target_link_libraries(${TARGET} PRIVATE ${DELLIBS})
 
 endfunction()

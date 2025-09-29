@@ -29,12 +29,12 @@ namespace phdst {
  * @note This class is designed for single-threaded environments only.
  * @note Only one instance (base or derived) can exist at any time.
  * 
- * @example
- * @code
+ * @example Analysis.hpp
+ * @code{.cpp}
  * class MyAnalysis : public phdst::Analysis {
  * public:
  *     MyAnalysis() : Analysis() {}
- *     void user00() override { /* custom initialization */ }
+ *     void user00() override { // custom initialization }
  * };
  * 
  * MyAnalysis analysis;

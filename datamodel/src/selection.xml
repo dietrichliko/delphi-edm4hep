@@ -1,0 +1,33 @@
+
+<lcgdict>
+    <selection>
+
+        <!-- components -->
+        <class name="delphi::Vector3f" ClassVersion="1"/>
+        <class name="std::vector<delphi::Vector3f>" ClassVersion="1"/>
+        <class name="delphi::TimeStamp" ClassVersion="1"/>
+        <class name="std::vector<delphi::TimeStamp>" ClassVersion="1"/>
+
+        <!-- datatypes -->
+        <class name="delphi::EventHeaderData" ClassVersion="1"/>
+        <class name="std::vector<delphi::EventHeaderData>" ClassVersion="1"/>
+        <class name="delphi::MutableEventHeader" ClassVersion="1"/>
+
+        <class name="delphi::EventHeader" ClassVersion="1"/>
+
+        <class name="delphi::EventHeaderCollection" ClassVersion="1"/>
+
+        <class name="delphi::RunHeaderData" ClassVersion="1"/>
+        <class name="std::vector<delphi::RunHeaderData>" ClassVersion="1"/>
+        <class name="delphi::MutableRunHeader" ClassVersion="1"/>
+
+        <class name="delphi::RunHeader" ClassVersion="1"/>
+
+        <class name="delphi::RunHeaderCollection" ClassVersion="1"/>
+
+
+        <!-- previous schema components and pods -->
+
+    </selection>
+
+</lcgdict>

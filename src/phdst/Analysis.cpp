@@ -8,8 +8,7 @@
 #include <stdexcept>
 #include <spdlog/spdlog.h>
 #include <phdst/Analysis.hpp>
-#include <phdst/functions.hpp>
-#include <phdst/phlun.hpp>
+#include <phdst/phdst.hpp>
 
 namespace phdst {
 
@@ -57,16 +56,19 @@ void Analysis::setInput(const std::string &filepath) {
 }
 
 int Analysis::pilot_record() {
+    // Check if we have a pilot record and read a DST record
+    if (NPILOT <= 0 or PHRTY() != "DST") {
+        return 0; // Stop processing
+    }
     // Check if we should limit the number of events
     if (max_event_ > 0) {
-        int current_event = NEVENT();
-        if (current_event >= max_event_) {
+        if (NEVENT >= max_event_) {
             // Stop processing - we've reached the maximum
-            spdlog::info("Reached maximum event limit: {} >= {}, stopping processing", current_event, max_event_);
+            spdlog::info("Reached maximum number of events : {}", NEVENT);
             return -3;
         }
-        if (current_event % 1000 == 0) {
-            spdlog::debug("Processing event {}/{}", current_event, max_event_);
+        if (NEVENT % 10 == 0) {
+            spdlog::debug("Processing event {}/{}", NEVENT, max_event_);
         }
     }
     
@@ -89,9 +91,12 @@ void Analysis::init() {
         spdlog::debug("Successfully processed input file: '{}'", filepath);
     }
     
-    // Set LUNPDL to 0
-    LUNPDL = 0;
-    spdlog::debug("Set LUNPDL to 0");
+    // Set LUNPDL to 0 only if input files were provided via command line
+    // This disables PDLINPUT file reading when explicit files are given
+    if (!input_files_.empty()) {
+        LUNPDL = 0;
+
+    } 
     
     spdlog::debug("Calling user00() for custom initialization");
     // Call the virtual user00() method that can be overridden by derived classes
@@ -107,7 +112,7 @@ void Analysis::user00() {
 
 int Analysis::user01() {
     // Default implementation - can be overridden by derived classes
-    return 0;
+    return 1;
 }
 
 void Analysis::user02() {
@@ -129,8 +134,8 @@ void user00_() {
     phdst::Analysis::getInstance()->init();
 }
 
-int user01_() {
-    return phdst::Analysis::getInstance()->pilot_record();
+void user01_(int * need) {
+    *need = phdst::Analysis::getInstance()->pilot_record();
 }
 
 void user02_() {

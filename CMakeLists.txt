@@ -12,6 +12,9 @@ set (CMAKE_CXX_STANDARD 17)
 
 add_compile_options(-ftemplate-depth=512)
 
+# Global linking to gfortran for Fortran/C++ interoperability
+link_libraries(gfortran)
+
 # Build options
 option(BUILD_DOCS "Build documentation with Doxygen" ON)
 
@@ -19,6 +22,10 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(DELPHI REQUIRED)
 find_package(EDM4HEP REQUIRED)
+find_package(podio REQUIRED)
+
+# Add the custom data model subdirectory
+add_subdirectory(datamodel)
 
 # Find Doxygen for documentation generation
 # Find Doxygen for documentation generation

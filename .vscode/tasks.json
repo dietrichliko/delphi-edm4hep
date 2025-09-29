@@ -73,6 +73,98 @@
             "detail": "Serve existing documentation on port 8080 (documentation must be built first)"
         },
         {
+            "label": "Build PHDST Analysis",
+            "type": "shell",
+            "command": "make",
+            "args": ["delphi_phdst"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/build"
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [],
+            "detail": "Build the delphi_phdst executable"
+        },
+        {
+            "label": "Run PHDST Analysis (qqps94)",
+            "type": "shell",
+            "command": "./run_phdst_qqps94.sh",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/scripts"
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "dependsOn": "Build PHDST Analysis",
+            "problemMatcher": [],
+            "detail": "Run PHDST analysis on qqps94 dataset (builds first if needed)"
+        },
+        {
+            "label": "Build EDM4hep Converter",
+            "type": "shell",
+            "command": "make",
+            "args": ["delphi_edm4hep"],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/build"
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [],
+            "detail": "Build the delphi_edm4hep converter executable"
+        },
+        {
+            "label": "Run EDM4hep Conversion (qqps94)",
+            "type": "shell",
+            "command": "./run_edm4hep_qqps94.sh",
+            "group": {
+                "kind": "test",
+                "isDefault": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/scripts"
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "dependsOn": "Build EDM4hep Converter",
+            "problemMatcher": [],
+            "detail": "Run DELPHI to EDM4hep conversion on qqps94 dataset (builds first if needed)"
+        },
+        {
             "label": "Open Documentation in Browser",
             "type": "shell",
             "command": "echo",
