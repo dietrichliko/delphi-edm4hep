@@ -1,0 +1,26 @@
+// Copyright (c) 2025 Members of the DELPHI collaboration
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Project: DELPHI-EDM4hep
+//
+// Author: Dietrich Liko <Dietrich.Liko@oeaw.ac.at>
+// Description: Version information generated from git
+
+#pragma once
+
+namespace delphi {
+namespace version {
+
+// Project version
+constexpr const char* PROJECT_VERSION = "@DELPHI-EDM4HEP_VERSION@";
+
+// Git version information
+constexpr const char* GIT_VERSION = "@GIT_VERSION@";
+constexpr const char* GIT_COMMIT_HASH = "@GIT_COMMIT_HASH@";
+constexpr const char* GIT_COMMIT_DATE = "@GIT_COMMIT_DATE@";
+
+// Build information
+constexpr const char* BUILD_TYPE = "@CMAKE_BUILD_TYPE@";
+constexpr const char* COMPILER = "@CMAKE_CXX_COMPILER_ID@ @CMAKE_CXX_COMPILER_VERSION@";
+
+} // namespace version
+} // namespace delphi

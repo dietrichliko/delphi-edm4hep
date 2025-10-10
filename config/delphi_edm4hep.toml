@@ -1,0 +1,92 @@
+# DELPHI to EDM4hep Conversion Configuration
+# ==========================================
+# 
+# This TOML configuration file defines settings for the DELPHI to EDM4hep 
+# conversion program. All settings in this file can be overridden by 
+# command-line arguments.
+#
+# Project: DELPHI-EDM4hep
+# Author: Dietrich Liko <Dietrich.Liko@oeaw.ac.at>
+
+# =============================================================================
+# File Input/Output Configuration
+# =============================================================================
+
+# Input DELPHI DST files to convert (optional)
+# If not specified here or via command line, the program will use the 
+# PDLINPUT file for input configuration following DELPHI conventions.
+# Multiple files can be specified as an array.
+input_files = [
+    # Example input files (uncomment and modify as needed):
+    # "/path/to/delphi/data/file1.dst",
+    # "/path/to/delphi/data/file2.dst"
+]
+
+# Output EDM4hep file path (required)
+# This specifies where the converted EDM4hep ROOT file will be written.
+# The file format follows the EDM4hep standard for modern analysis frameworks.
+output_file = "output/converted_data.edm4hep.root"
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
+
+[logging]
+# Log level controls the verbosity of program output
+# Available levels: trace, debug, info, warn, error, critical
+# - trace: Most verbose, includes all debug information
+# - debug: Detailed debugging information useful for development
+# - info: General information about program execution (default)
+# - warn: Warning messages about potential issues
+# - error: Error messages about failures
+# - critical: Only critical errors that cause program termination
+level = "info"
+
+# =============================================================================
+# PHDST Analysis Configuration
+# =============================================================================
+
+[phdst]
+# Maximum number of events to process
+# Set to 0 for unlimited processing (process all events in input files)
+# Useful for testing with smaller datasets or limiting processing time
+max_events = 0
+
+# Filter T4 hadrons in event selection
+# When enabled, applies T4 hadron filtering during event processing
+# This is a DELPHI-specific filter that affects event selection criteria
+# - true: Enable T4 hadron filtering
+# - false: Disable filtering (process all events that pass other criteria)
+filter_t4_hadrons = false
+
+# =============================================================================
+# EDM4hep Conversion Settings
+# =============================================================================
+
+# Note: Additional EDM4hep-specific settings may be added here in future versions
+# Current implementation focuses on basic conversion with standard EDM4hep format
+
+# =============================================================================
+# Example Configurations for Different Use Cases
+# =============================================================================
+
+# Example 1: Quick test with limited events
+# [phdst]
+# max_events = 100
+# filter_t4_hadrons = false
+# [logging]
+# level = "debug"
+
+# Example 2: Production conversion with filtering
+# [phdst]
+# max_events = 0
+# filter_t4_hadrons = true
+# [logging]
+# level = "info"
+
+# Example 3: Debug configuration for development
+# [phdst]
+# max_events = 10
+# filter_t4_hadrons = false
+# [logging]
+# level = "trace"

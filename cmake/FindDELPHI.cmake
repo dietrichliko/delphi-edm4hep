@@ -35,25 +35,51 @@ function(ypatchy FOUT CRA)
 endfunction()
 
 # Wrapper for the cernlib command that simplifies link options
+# Usage: target_link_cernlibs(<TARGET> [PRIVATE|PUBLIC|INTERFACE] <cernlib_args>...)
 function(target_link_cernlibs TARGET)
 
+    # Parse arguments to extract visibility
+    set(VISIBILITY_OPTIONS PRIVATE PUBLIC INTERFACE)
+    set(VISIBILITY "PRIVATE")  # Default visibility
+    set(CERNLIB_ARGS ${ARGN})
+    
+    # Check if first argument is a visibility specifier
+    list(GET ARGN 0 FIRST_ARG)
+    if(FIRST_ARG IN_LIST VISIBILITY_OPTIONS)
+        set(VISIBILITY ${FIRST_ARG})
+        list(REMOVE_AT CERNLIB_ARGS 0)  # Remove visibility from cernlib args
+    endif()
+
     execute_process(
-        COMMAND cernlib ${ARGN}
+        COMMAND cernlib ${CERNLIB_ARGS}
         OUTPUT_VARIABLE CERNLIBS
         OUTPUT_STRIP_TRAILING_WHITESPACE
         )
-    target_link_libraries(${TARGET} PRIVATE ${CERNLIBS})
+    target_link_libraries(${TARGET} ${VISIBILITY} ${CERNLIBS})
 
 endfunction()
 
 # Wrapper for the dellib command that simplifies link options
+# Usage: target_link_dellibs(<TARGET> [PRIVATE|PUBLIC|INTERFACE] <dellib_args>...)
 function(target_link_dellibs TARGET)
 
+    # Parse arguments to extract visibility
+    set(VISIBILITY_OPTIONS PRIVATE PUBLIC INTERFACE)
+    set(VISIBILITY "PRIVATE")  # Default visibility
+    set(DELLIB_ARGS ${ARGN})
+    
+    # Check if first argument is a visibility specifier
+    list(GET ARGN 0 FIRST_ARG)
+    if(FIRST_ARG IN_LIST VISIBILITY_OPTIONS)
+        set(VISIBILITY ${FIRST_ARG})
+        list(REMOVE_AT DELLIB_ARGS 0)  # Remove visibility from dellib args
+    endif()
+
     execute_process(
-        COMMAND dellib ${ARGN}
+        COMMAND dellib ${DELLIB_ARGS}
         OUTPUT_VARIABLE DELLIBS
         OUTPUT_STRIP_TRAILING_WHITESPACE
         )
-    target_link_libraries(${TARGET} PRIVATE ${DELLIBS})
+    target_link_libraries(${TARGET} ${VISIBILITY} ${DELLIBS})
 
 endfunction()

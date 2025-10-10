@@ -50,3 +50,4 @@
 #include <phdst/pxchdr.hpp>
 #include <phdst/uxcom.hpp>
 #include <phdst/uxlink.hpp>
+#include <phdst/zebra_pointer.hpp>

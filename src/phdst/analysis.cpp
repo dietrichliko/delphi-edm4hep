@@ -7,7 +7,7 @@
 
 #include <stdexcept>
 #include <spdlog/spdlog.h>
-#include <phdst/Analysis.hpp>
+#include <phdst/analysis.hpp>
 #include <phdst/phdst.hpp>
 
 namespace phdst {
@@ -15,7 +15,7 @@ namespace phdst {
 // Initialize static member
 Analysis* Analysis::instance_ = nullptr;
 
-Analysis::Analysis() : max_event_(0) {
+Analysis::Analysis() {
     // Ensure only one instance can exist
     if (instance_ != nullptr) {
         spdlog::error("Analysis instance already exists. Only one Analysis instance (base or derived) is allowed.");
@@ -58,7 +58,7 @@ void Analysis::setInput(const std::string &filepath) {
 int Analysis::pilot_record() {
     // Check if we have a pilot record and read a DST record
     if (NPILOT <= 0 or PHRTY() != "DST") {
-        return 0; // Stop processing
+        return 0; // Skip this event
     }
     // Check if we should limit the number of events
     if (max_event_ > 0) {
@@ -70,6 +70,22 @@ int Analysis::pilot_record() {
         if (NEVENT % 10 == 0) {
             spdlog::debug("Processing event {}/{}", NEVENT, max_event_);
         }
+    }
+    
+    // T4 hadron selection only on data
+    if (filter_t4_hadrons_ && IIIRUN > 0) {
+        // For real data, apply T4 hadron filtering if enabled
+
+        int iden = IPHPIC("IDEN");
+        if ( iden >= 0 && (IPILOT(iden+6) & 0x2) == 0x0) {
+            spdlog::debug("Skipping event {}/{} due to T4 hadron tag", IIIRUN, IIIEVT);
+            return 0; // Skip this event
+        }
+    }
+    
+    // Log event processing based on event_log_interval_ setting
+    if (event_log_interval_ > 0 && NEVENT % event_log_interval_ == 0) {
+        spdlog::info("Processing event {} in run {}", IIIEVT, IIIRUN);
     }
     
     // Call the virtual user01() method
@@ -121,6 +137,15 @@ void Analysis::user02() {
 
 void Analysis::user99() {
     // Default implementation - can be overridden by derived classes
+}
+
+void Analysis::setEventLogInterval(int interval) {
+    if (interval > 0) {
+        event_log_interval_ = interval;
+        spdlog::debug("Event logging interval set to: {}", interval);
+    } else {
+        spdlog::warn("Invalid event logging interval: {}. Interval must be positive.", interval);
+    }
 }
 
 } // namespace phdst

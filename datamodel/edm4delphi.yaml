@@ -1,0 +1,101 @@
+---
+schema_version: 1
+
+options:
+  getSyntax: True
+  exposePODMembers: False
+  includeSubfolder: True
+
+datatypes:
+
+  edm4delphi::EventHeader:
+    Description: "DELPHI-specific event header with extended metadata"
+    Author: "Dietrich Liko <Dietrich.Liko@oeaw.ac.at>"
+    Members:
+      - uint32_t eventNumber       // Event number within the run
+      - uint32_t runNumber         // Run number  
+      - uint32_t fileNumber        // File number within the run
+      - uint32_t timeStamp         // Event timestamp (Unix time in seconds)
+      - float magneticField        // Magnetic field strength in Tesla
+      - int nrChargedTracks        // Number of charged tracks in the event
+      - int nrChargedTracksT4      // Number of charged tracks in the event
+      - int nrNeutralTracks        // Number of neutral tracks in the event
+      - float totChargedEnergy     // Total energy of charged tracks in the event
+      - float totEMNeutralEnergy   // Total energy of neutral tracks in the event
+      - float totHadNeutralEnergy  // Total energy of neutral tracks in the event
+      - bool hadronTagT4           // Hadronic event tag from DELPHI T4
+
+    MutableExtraCode:
+      includes: |
+        #include <ctime>
+      declaration: |
+        // Set date and time from YYYYMMDD and HHMMSS format
+        void setDateTime(int date, int time);
+      implementation: |
+        void edm4delphi::MutableEventHeader::setDateTime(int date, int time) {
+          tm timeinfo = {};
+          timeinfo.tm_year = date / 10000 - 1900;
+          timeinfo.tm_mon = (date / 100 % 100) - 1;
+          timeinfo.tm_mday = date % 100;
+          timeinfo.tm_hour = time / 3600;
+          timeinfo.tm_min = (time % 3600) / 60;
+          timeinfo.tm_sec = time % 60;
+          setTimeStamp(static_cast<uint32_t>(mktime(&timeinfo)));
+        }
+    ExtraCode:
+      includes: |
+        #include <ctime>
+      declaration: |
+        // Get date in YYYYMMDD format
+        int getDate() const {
+          time_t timestamp = static_cast<time_t>(getTimeStamp());
+          tm *timeinfo = localtime(&timestamp);
+          return (timeinfo->tm_year + 1900) * 10000 + (timeinfo->tm_mon + 1) * 100 + timeinfo->tm_mday;
+        };
+
+        // Get time in HHMMSS format
+        int getTime() const {
+          time_t timestamp = static_cast<time_t>(getTimeStamp());
+          tm *timeinfo = localtime(&timestamp);
+          return timeinfo->tm_hour * 1000 + timeinfo->tm_min * 100 + timeinfo->tm_sec;
+        };
+
+
+  edm4delphi::RunHeader:
+    Description: "DELPHI-specific run header information"
+    Author: "Dietrich Liko <Dietrich.Liko@oeaw.ac.at>"
+    Members:
+      - uint32_t experimentNumber // Experiment number (e.g., usually 1000 for DELPHI)
+      - uint32_t runNumber     // Run number
+      - uint32_t fileNumber    // File number within the run
+      - uint32_t fillNumber    // LEP fill number
+      - uint32_t eventCount    // Total number of events in the run
+      - float centerOfMassEnergy    // LEP center-of-mass energy in GeV
+      - uint32_t processingTag   // Dataset version identifier (94B2 is DELANA for year 94, version B and short DST version 2)
+      - edm4hep::Vector3f beamSpot   // Beam spot position
+    MutableExtraCode:
+      declaration: |
+        // set processingTag from string like "94B2"
+        void setProcessingTag(const std::string &tag);
+      implementation: |
+        void edm4delphi::MutableRunHeader::setProcessingTag(const std::string &tag) {
+          int year = tag.rfind("A0",0) == 0 ? 100 : std::stoi(tag.substr(0,2));
+          int delana = tag[2] - 'A' + 1; // A=1, B=2, ...
+          int shortdst = tag.size() > 3 ? tag[3] - '0' : 0; // '1' = 1, '2' = 2, ...
+          setProcessingTag(year * 100 + delana * 10 + shortdst);
+        }
+    ExtraCode:
+      declaration: |
+        // Get processingTag as string like "94B2"
+        std::string getProcessingTagString() const {
+          int tag = getProcessingTag();
+          int year = tag / 100;
+          int delana = (tag / 10) % 10;
+          int shortdst = tag % 10;
+          char buffer[5];
+          if (shortdst > 0)
+            std::snprintf(buffer, sizeof(buffer), "%02d%c%d", year, 'A' + delana - 1, shortdst);
+          else
+            std::snprintf(buffer, sizeof(buffer), "%02d%c", year, 'A' + delana - 1);
+          return std::string(buffer);
+        };  

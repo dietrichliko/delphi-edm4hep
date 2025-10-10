@@ -37,7 +37,7 @@ namespace phdst
      */
     extern "C" struct
     {
-        int ltemp;   ///< Integer pointer to temporary data section in Zebra store
+        int ltemp[2];   ///< Integer pointer to temporary data section in Zebra store
         int lrtop;   ///< Integer pointer to reconstructed track top-level section
         int lstop;   ///< Integer pointer to shower/cluster top-level section
         int lttop;   ///< Integer pointer to trigger top-level section
@@ -50,15 +50,6 @@ namespace phdst
         int lrtint;  ///< Integer pointer to reconstruction intermediate section
         int ldtop;   ///< Integer pointer to detector top-level section
     } uxlink_;
-
-    /**
-     * @brief Reference to temporary data section pointer
-     * 
-     * Integer pointer to the temporary data section in the main Zebra
-     * datastructure. Used for accessing temporary storage areas during
-     * event processing and reconstruction.
-     */
-    inline int &LTEMP = uxlink_.ltemp;
     
     /**
      * @brief Reference to reconstructed track top-level section pointer

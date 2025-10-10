@@ -11,7 +11,7 @@
 #include <argparse/argparse.hpp>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
-#include <phdst/Analysis.hpp>
+#include <phdst/analysis.hpp>
 
 // ANSI color codes for enhanced output
 namespace colors {

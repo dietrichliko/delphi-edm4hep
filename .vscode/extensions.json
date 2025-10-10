@@ -1,0 +1,10 @@
+{
+    "recommendations": [
+        "ms-vscode.cpptools-extension-pack",
+        "cschlosser.doxdocgen",
+        "mkhl.direnv",
+        "formulahendry.code-runner",
+        "redhat.vscode-yaml",
+        "github.vscode-github-actions"
+    ]
+}

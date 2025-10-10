@@ -29,7 +29,7 @@ namespace phdst {
  * @note This class is designed for single-threaded environments only.
  * @note Only one instance (base or derived) can exist at any time.
  * 
- * @example Analysis.hpp
+ * @example analysis.hpp
  * @code{.cpp}
  * class MyAnalysis : public phdst::Analysis {
  * public:
@@ -42,6 +42,7 @@ namespace phdst {
  * @endcode
  */
 class Analysis {
+
 public:
     /**
      * @brief Get the current Analysis instance
@@ -116,15 +117,14 @@ public:
     void setInput(const std::string &filepath);
 
     /**
-     * @brief Pilot record processing with event limit handling
+     * @brief Set T4 hadron filtering flag
      * 
-     * Internal method that handles event counting and max_event_ logic.
-     * Called by the C interface user01_() function. Checks the current
-     * event count and calls the virtual user01() method if within limits.
+     * When enabled, the analysis will filter T4 hadrons during event processing.
+     * This affects event selection and vertex processing.
      * 
-     * @return Processing status (1 = read event, 0 = skip event, -3 = stop processing)
+     * @param filter True to enable T4 hadron filtering, false to disable
      */
-    int pilot_record();
+    void setFilterT4Hadrons(bool filter) { filter_t4_hadrons_ = filter; }
 
     /**
      * @brief Internal initialization method
@@ -135,8 +135,33 @@ public:
      * 
      * @note This method should not be overridden by derived classes
      * @note Derived classes should override user00() instead
+     * @note Made public to allow access from C interface functions
      */
     void init();
+
+    /**
+     * @brief Pilot record processing with event limit handling
+     * 
+     * Internal method that handles event counting and max_event_ logic.
+     * Called by the C interface user01_() function. Checks the current
+     * event count and calls the virtual user01() method if within limits.
+     * 
+     * @return Processing status (1 = read event, 0 = skip event, -3 = stop processing)
+     * @note Made public to allow access from C interface functions
+     */
+    int pilot_record();
+
+    /**
+     * @brief Set event logging interval for user01 processing
+     * 
+     * Controls how often event processing information is logged:
+     * - If interval < 0: Disable all event processing logging
+     * - If interval > 0: Log run and event number every 'interval' events
+     * - If interval = 0: No periodic logging (default)
+     * 
+     * @param interval Number of events between log messages (0 = no logging, <0 = disabled)
+     */
+    void setEventLogInterval(int interval);
 
     /**
      * @brief User initialization routine
@@ -177,6 +202,7 @@ public:
      */
     virtual void user99();
 
+
 protected:
     /**
      * @brief Protected constructor
@@ -203,7 +229,7 @@ private:
      * If set to 0 (default), all events will be processed.
      * Otherwise, processing stops after this many events.
      */
-    int max_event_;
+    int max_event_ = 0;
     
     /**
      * @brief Container for input file paths
@@ -212,6 +238,23 @@ private:
      * This allows multiple input files to be specified before analysis starts.
      */
     std::vector<std::string> input_files_;
+    
+    /**
+     * @brief Flag to enable T4 hadron filtering during event processing
+     * 
+     * When true, the analysis will apply T4 hadron filtering logic
+     * during event selection and vertex processing.
+     */
+    bool filter_t4_hadrons_ = false;
+    
+    /**
+     * @brief Event logging interval
+     * 
+     * Controls logging of event processing in user01:
+     * - If <= 0: No event processing output
+     * - If > 0: Print run and event number every N events
+     */
+    int event_log_interval_ = 0;
 };
 
 } // namespace phdst
