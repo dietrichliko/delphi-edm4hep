@@ -52,6 +52,7 @@
 #include <stdexcept>
 #include <cstddef>
 #include <functional>
+#include <type_traits>
 
 namespace phdst
 {
@@ -193,17 +194,37 @@ namespace phdst
          * 
          * Factory method to create a ZebraPointer from an existing Zebra link.
          * The link is automatically added to the registry if not already present.
+         * Accepts both signed and unsigned 32-bit integer types.
          * 
+         * @tparam T Integer type (int32_t, uint32_t, int, unsigned int, etc.)
          * @param zebra_link The Zebra link value (typically from LQ array)
          * @return ZebraPointer object referencing the link
          * 
          * @par Example:
          * @code
-         * int link = LQ(10);  // Get link from Zebra
-         * ZebraPointer ptr = ZebraPointer::create(link);
+         * int link = LQ(10);           // signed int
+         * std::uint32_t ulink = LQ(20); // unsigned int
+         * ZebraPointer ptr1 = ZebraPointer::create(link);   // works
+         * ZebraPointer ptr2 = ZebraPointer::create(ulink);  // also works
          * @endcode
          */
-        static ZebraPointer create(int zebra_link);
+        template<typename T>
+        static ZebraPointer create(T zebra_link) {
+            static_assert(std::is_integral_v<T> && sizeof(T) == 4, 
+                         "ZebraPointer::create() requires a 32-bit integer type");
+            return create_impl(static_cast<int>(zebra_link));
+        }
+        
+    private:
+        /**
+         * @brief Internal implementation of create method
+         * 
+         * @param zebra_link The Zebra link value as signed int
+         * @return ZebraPointer object referencing the link
+         */
+        static ZebraPointer create_impl(int zebra_link);
+        
+    public:
         
         /**
          * @brief Check if the pointer references a valid Zebra link

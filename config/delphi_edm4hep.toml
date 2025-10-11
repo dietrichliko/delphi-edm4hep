@@ -63,6 +63,15 @@ filter_t4_hadrons = false
 # EDM4hep Conversion Settings
 # =============================================================================
 
+[edm4hep]
+# Fix secondary hadronic interactions in the data
+# When enabled, applies corrections to secondary hadronic interaction blocklets
+# in the ZEBRA data structure using the MAKEMOD8 routine. This corrects
+# specific bit patterns that indicate secondary hadronic interactions.
+# - true: Enable fixing of secondary hadronic interactions (recommended)
+# - false: Disable the fix (use original data as-is)
+fix_secondary_hadronic_interactions = true
+
 # Note: Additional EDM4hep-specific settings may be added here in future versions
 # Current implementation focuses on basic conversion with standard EDM4hep format
 

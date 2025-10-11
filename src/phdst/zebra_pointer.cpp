@@ -41,7 +41,7 @@ namespace phdst
         return registry_count_++;
     }
     
-    ZebraPointer ZebraPointer::create(int zebra_link)
+    ZebraPointer ZebraPointer::create_impl(int zebra_link)
     {
         int index = find_or_add_link(zebra_link);
         return ZebraPointer(index);

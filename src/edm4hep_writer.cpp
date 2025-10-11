@@ -17,9 +17,14 @@
 #include <edm4hep/EventHeaderCollection.h>
 #include <edm4hep/MutableVertex.h>
 #include <edm4hep/VertexCollection.h>
+#include <edm4hep/ReconstructedParticleCollection.h>
+#include <edm4hep/MCParticleCollection.h>
+#include <edm4hep/MCRecoParticleAssociationCollection.h>
 #include <edm4delphi/EventHeaderCollection.h>
 #include <edm4delphi/RunHeaderCollection.h>
+#include <edm4delphi/BTaggingCollection.h>
 #include <dstana/dstana.hpp>
+#include <mamoth/mamoth.hpp>
 #include <edm4hep_writer.hpp>
 
 
@@ -36,6 +41,11 @@ EDM4hepWriter::~EDM4hepWriter() {
 void EDM4hepWriter::setOutput(const std::string& output_path) {
     output_path_ = output_path;
     spdlog::info("EDM4hep output file set to: {}", output_path_);
+}
+
+void EDM4hepWriter::setFixSecondaryHadronicInteractions(bool enable) {
+    fix_secondary_hadronic_interactions_ = enable;
+    spdlog::info("Secondary hadronic interaction fixing {}", enable ? "enabled" : "disabled");
 }
 
 bool EDM4hepWriter::is_mc() const {
@@ -78,9 +88,22 @@ void EDM4hepWriter::user02() {
         return; // Skip event if no valid data
     }
 
+    // Add missing blocklets
+    if (fix_secondary_hadronic_interactions_) {
+        fixSecondaryHadronicInteractions();
+    }
+
+    // Now the real conversion is starting.
     startEvent();
     fillEventHeader();
     fillVertices();
+    fillRecoParticles();
+    if (is_mc()) {
+        fillMCParticles();
+        fillMCRecoParticleAssociations();
+    }
+    fillBTagging();
+
     finishEvent();
     phdst::ZebraPointer::reset();
 }
@@ -101,6 +124,10 @@ void EDM4hepWriter::user99() {
 void EDM4hepWriter::startEvent() {
     spdlog::debug("EDM4hepWriter::startEvent() - Starting event {}", phdst::IIIEVT);
 
+    // Get physics parameters for this event
+    obtainCenterOfMassEnergy();
+    obtainMagneticField();
+
     // Check if we need to write the previous run header and start a new one
     spdlog::debug("Run {}, File {}", current_run_, current_file_);
     spdlog::debug("New Run {}, New File {}", phdst::IIIRUN, phdst::IIFILE);
@@ -110,47 +137,51 @@ void EDM4hepWriter::startEvent() {
         }
         startRun();
     } else {
-        // Get physics parameters for consistency within the run
-        obtainCenterOfMassEnergy();
+
 
         // Same run and file, just increment event count and check for consistency
         run_event_count_++; 
     }
-
-    obtainMagneticField();
     
     // Initialize collections for the new event
     event_header_collection_ = std::make_unique<edm4hep::EventHeaderCollection>();
     delphi_event_header_collection_ = std::make_unique<edm4delphi::EventHeaderCollection>();
+    vertex_collection_ = std::make_unique<edm4hep::VertexCollection>();
+    reco_particle_collection_ = std::make_unique<edm4hep::ReconstructedParticleCollection>();
+    if (is_mc()) {
+        mc_particle_collection_ = std::make_unique<edm4hep::MCParticleCollection>();
+        mc_reco_particle_association_collection_ = std::make_unique<edm4hep::MCRecoParticleAssociationCollection>();
+    }
     
 }
 
 void EDM4hepWriter::finishEvent() {
     spdlog::debug("EDM4hepWriter::finishEvent() - Finalizing event {}", phdst::IIIEVT);
 
-    // Create VertexCollection and copy vertices from the vertex map
-    auto vertex_collection = edm4hep::VertexCollection();
-    
-    for (const auto& [zebra_ptr, vertex_ptr] : vertex_map_) {
-        // Copy the MutableVertex into the collection
-        auto vertex_in_collection = vertex_collection.create();
-        vertex_in_collection = *vertex_ptr;  // Copy all data from MutableVertex
-        spdlog::trace("Added vertex to collection from ZebraPointer");
-    }
-    vertex_map_.clear(); // Clear the map after copying
-
-    spdlog::debug("Created VertexCollection with {} vertices", vertex_collection.size());
 
     // Put all collections into the eventFrame
     podio::Frame eventFrame;
     eventFrame.put(std::move(*event_header_collection_), "EventHeader");
     eventFrame.put(std::move(*delphi_event_header_collection_), "DelphiEventHeader");
-    eventFrame.put(std::move(vertex_collection), "Vertices");
+    eventFrame.put(std::move(*vertex_collection_), "Vertices");
+    eventFrame.put(std::move(*reco_particle_collection_), "ReconstructedParticles");
+    if (is_mc()) {
+        eventFrame.put(std::move(*mc_particle_collection_), "MCParticles");
+        eventFrame.put(std::move(*mc_reco_particle_association_collection_), "MCRecoParticleAssociations");
+    }
 
     writer_->writeFrame(eventFrame, "events");
 
     event_header_collection_.reset();
     delphi_event_header_collection_.reset();
+    vertex_collection_.reset();
+    reco_particle_collection_.reset();
+    mc_particle_collection_.reset();
+    mc_reco_particle_association_collection_.reset();
+    vertex_ptrs_.clear();
+    reco_particle_ptrs_.clear();
+    zebra_to_vertex_index_.clear();
+    zebra_to_reco_particle_index_.clear();
 }
 
 void EDM4hepWriter::fillEventHeader() {
@@ -172,6 +203,10 @@ void EDM4hepWriter::fillEventHeader() {
     delphiHeader.setTotEMNeutralEnergy(0);
     delphiHeader.setTotHadNeutralEnergy(0);
     delphiHeader.setHadronTagT4(true);
+    delphiHeader.setProbForTracksWithNegativeIP(edm4hep::Vector3f{0.0f, 0.0f, 0.0f});
+    delphiHeader.setProbForTracksWithPositiveIP(edm4hep::Vector3f{0.0f, 0.0f, 0.0f});
+    delphiHeader.setThrustAxis(edm4hep::Vector3f{0.0f, 0.0f, 0.0f});
+
 
     // Fill standard EDM4hep event header
     auto eventHeader = event_header_collection_->create();
@@ -201,15 +236,19 @@ void EDM4hepWriter::fillVertices() {
             continue;
         }
 
-        auto vtx = std::make_unique<edm4hep::MutableVertex>();
+        auto vtx = vertex_collection_->create();
         
-        vtx->setPrimary( status_bits & 0x2 ? 0 : 1 ); // Bit 1 indicates secondary vertex
-        vtx->setChi2(lpv.float_at(8));
-        vtx->setProbability(TMath::Prob(lpv.float_at(8), lpv.int_at(3)));
-        vtx->setPosition(edm4hep::Vector3f{lpv.float_at(5), lpv.float_at(6), lpv.float_at(7)});
-        vtx->setCovMatrix(std::array<float, 6>{lpv.float_at(9), lpv.float_at(10), lpv.float_at(11), lpv.float_at(12), lpv.float_at(13), lpv.float_at(14)});
+        // Store ZebraPointer and create mapping to collection index
+        size_t vertex_index = vertex_ptrs_.size();
+        vertex_ptrs_.push_back(lpv);
+        zebra_to_vertex_index_[lpv] = vertex_index;
+        
+        vtx.setPrimary( status_bits & 0x2 ? 0 : 1 ); // Bit 1 indicates secondary vertex
+        vtx.setChi2(lpv.float_at(8));
+        vtx.setProbability(TMath::Prob(lpv.float_at(8), lpv.int_at(3)));
+        vtx.setPosition(edm4hep::Vector3f{lpv.float_at(5), lpv.float_at(6), lpv.float_at(7)});
+        vtx.setCovMatrix(std::array<float, 6>{lpv.float_at(9), lpv.float_at(10), lpv.float_at(11), lpv.float_at(12), lpv.float_at(13), lpv.float_at(14)});
 
-        vertex_map_[lpv] = std::move(vtx);
 
         lpv = lpv.ptr_at(0);
 
@@ -260,9 +299,6 @@ void EDM4hepWriter::startRun() {
     // Reset physics parameters for new run (0 = unset)
     center_of_mass_energy_ = 0.0f;
 
-    // Determine physics parameters for this run
-    obtainCenterOfMassEnergy();
-
     spdlog::debug("Run header initialized for run {}, file {}", current_run_, current_file_);
 }
 
@@ -293,4 +329,94 @@ void EDM4hepWriter::finishRun() {
     writer_->writeFrame(runFrame, "runs");
     
     spdlog::debug("Run header written for run {}, file {}", current_run_, current_file_);
+}
+
+
+void EDM4hepWriter::fillRecoParticles() {
+    spdlog::debug("EDM4hepWriter::fillRecoParticles() - Processing DELPHI reconstructed particle data for event {}", phdst::IIIEVT);
+    
+    // TODO: Implement reconstructed particle processing
+    // This will involve reading DELPHI track and cluster data
+    // and converting them to EDM4hep ReconstructedParticle objects
+    
+    spdlog::trace("Reconstructed particle processing completed");
+}
+
+void EDM4hepWriter::fillMCParticles() {
+    spdlog::debug("EDM4hepWriter::fillMCParticles() - Processing DELPHI Monte Carlo particle data for event {}", phdst::IIIEVT);
+    
+    if (!is_mc()) {
+        spdlog::debug("Not Monte Carlo data, skipping MC particle processing");
+        return;
+    }
+    
+    // TODO: Implement Monte Carlo particle processing
+    // This will involve reading DELPHI MC truth data
+    // and converting them to EDM4hep MCParticle objects
+    
+    spdlog::trace("Monte Carlo particle processing completed");
+}
+
+void EDM4hepWriter::fillMCRecoParticleAssociations() {
+    spdlog::debug("EDM4hepWriter::fillMCRecoParticleAssociations() - Creating MC-Reco associations for event {}", phdst::IIIEVT);
+    
+    if (!is_mc()) {
+        spdlog::debug("Not Monte Carlo data, skipping MC-Reco associations");
+        return;
+    }
+    
+    // TODO: Implement MC-Reco particle associations
+    // This will involve linking MC particles to reconstructed particles
+    // based on DELPHI tracking and simulation information
+    
+    spdlog::trace("MC-Reco particle association processing completed");
+}
+
+void EDM4hepWriter::fillBTagging() {
+    spdlog::debug("EDM4hepWriter::fillBTagging() - Processing BTagging information for event {}", phdst::IIIEVT);
+
+    // TODO: Implement BTagging information processing
+    // This will involve reading DELPHI BTagging data structures
+    // and converting them to EDM4hep BTagging objects
+
+    spdlog::trace("BTagging processing completed");
+}
+
+void EDM4hepWriter::fixSecondaryHadronicInteractions() {
+    spdlog::debug("EDM4hepWriter::fixSecondaryHadronicInteractions() - Fixing secondary hadronic interactions for event {}", phdst::IIIEVT);
+
+    // Traverse the ZEBRA data structure to find and fix secondary hadronic interaction blocklets
+    // Secondary hadronic interaction blocklets are identified by specific patterns in their data
+    // Here we look for blocklets where 7 bits starting at bit position 18 equal 120 (0x78)
+    // and a TRAC module (8) will be added by MAKEMOD8.
+    // Due to Zebra, LPA pointer will change if a module is added. As the structure stays consistent,
+    // the loop can continue safely. 
+    std::uint32_t LPV = phdst::LQ(phdst::LDTOP-1);
+    while (LPV > 0) {
+        std::uint32_t LPA = phdst::LQ(LPV - 1);
+        while (LPA > 0) {
+            // Check if 7 bits starting at bit position 18 equal 120 (0x78 << 18 = 0x1E00000)
+            std::uint32_t word = static_cast<std::uint32_t>(phdst::IQ(LPA+3));
+            if ((word & 0x1FC0000U) == 0x1E00000U) {  // mask: 0x7F << 18, value: 120 << 18
+                spdlog::trace("Found secondary hadronic interaction blocklet at LPA = {}, applying MAKEMOD8", LPA);
+                int ierr = mamoth::MAKEMOD8(LPA, false);  // LPA may be modified by MAKEMOD8
+                if (ierr != 0) {
+                    spdlog::error("MAKEMOD8 failed for LPA = {} with error code {}", LPA, ierr);
+                }
+                spdlog::trace("After MAKEMOD8: LPA = {}", LPA);
+            }
+            // Use the potentially modified LPA value to get the next link
+            LPA = phdst::LQ(LPA);
+        }
+        LPV = phdst::LQ(LPV);
+    }
+    spdlog::trace("Secondary hadronic interaction corrections completed");
+}
+
+int EDM4hepWriter::findVertexIndex(const phdst::ZebraPointer& zebra_ptr) const {
+    auto it = zebra_to_vertex_index_.find(zebra_ptr);
+    if (it != zebra_to_vertex_index_.end()) {
+        return static_cast<int>(it->second);
+    }
+    return -1; // Not found
 }

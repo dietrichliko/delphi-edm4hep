@@ -79,6 +79,11 @@ struct Config {
         int max_events = 0;
         bool filter_t4_hadrons = false;
     } phdst;
+    
+    // EDM4hep configuration
+    struct {
+        bool fix_secondary_hadronic_interactions = true;
+    } edm4hep;
 };
 
 /**
@@ -102,6 +107,13 @@ void loadConfigFile(Config& config, const std::string& config_file) {
             }
             if (auto filter_t4_hadrons = phdst["filter_t4_hadrons"].value<bool>()) {
                 config.phdst.filter_t4_hadrons = *filter_t4_hadrons;
+            }
+        }
+        
+        // Load edm4hep section
+        if (auto edm4hep = toml_config["edm4hep"]) {
+            if (auto fix_secondary_hadronic_interactions = edm4hep["fix_secondary_hadronic_interactions"].value<bool>()) {
+                config.edm4hep.fix_secondary_hadronic_interactions = *fix_secondary_hadronic_interactions;
             }
         }
         
@@ -278,6 +290,7 @@ int main(int argc, char* argv[]) {
         spdlog::info("  Output file: {}", config.output_file);
         spdlog::info("  Max events:  {}", config.phdst.max_events == 0 ? "unlimited" : std::to_string(config.phdst.max_events));
         spdlog::info("  Filter T4 hadrons: {}", config.phdst.filter_t4_hadrons ? "enabled" : "disabled");
+        spdlog::info("  Fix secondary hadronic interactions: {}", config.edm4hep.fix_secondary_hadronic_interactions ? "enabled" : "disabled");
         spdlog::info("  Log level:   {}", config.logging.level);
         
         // Create EDM4hep writer instance
@@ -286,6 +299,7 @@ int main(int argc, char* argv[]) {
         
         // Configure writer
         writer->setOutput(config.output_file);
+        writer->setFixSecondaryHadronicInteractions(config.edm4hep.fix_secondary_hadronic_interactions);
         
         if (config.phdst.max_events > 0) {
             writer->setMaxEvent(config.phdst.max_events);

@@ -24,6 +24,10 @@ datatypes:
       - float totEMNeutralEnergy   // Total energy of neutral tracks in the event
       - float totHadNeutralEnergy  // Total energy of neutral tracks in the event
       - bool hadronTagT4           // Hadronic event tag from DELPHI T4
+      - edm4hep::Vector3f probForTracksWithNegativeIP // Probability for tracks with negative impact parameter (hemisphere1, hemisphere2, full event)
+      - edm4hep::Vector3f probForTracksWithPositiveIP // Probability for tracks with positive impact parameter (hemisphere1, hemisphere2, full event)
+      - edm4hep::Vector3f probForAllTracks // Probability for all tracks (hemisphere1, hemisphere2, full event)
+      - edm4hep::Vector3f thrustAxis // Thrust axis (x,y,z)
 
     MutableExtraCode:
       includes: |

@@ -9,9 +9,11 @@
 
 #include <string>
 #include <memory>
-#include <map>
+#include <vector>
+#include <unordered_map>
 #include <phdst/analysis.hpp>
 #include <phdst/zebra_pointer.hpp>
+
 
 // Forward declarations
 namespace podio {
@@ -20,7 +22,12 @@ namespace podio {
 
 namespace edm4hep {
     class EventHeaderCollection;
+    class VertexCollection;
+    class ReconstructedParticleCollection;
+    class MCParticleCollection;
+    class MCRecoParticleAssociationCollection;
     class MutableVertex;
+    class MutableReconstructedParticle;
 }
 
 namespace edm4delphi {
@@ -81,6 +88,16 @@ public:
      * @param output_path Path to the output EDM4hep file
      */
     void setOutput(const std::string& output_path);
+    
+    /**
+     * @brief Set configuration for secondary hadronic interaction fixing
+     * 
+     * Enables or disables the correction of secondary hadronic interaction
+     * blocklets in the ZEBRA data structure.
+     * 
+     * @param enable If true, apply corrections; if false, skip corrections
+     */
+    void setFixSecondaryHadronicInteractions(bool enable);
     
     /**
      * @brief Get the current output file path
@@ -216,20 +233,60 @@ protected:
      void obtainMagneticField();
 
      /**
-      * @brief Get or create vertex from ZebraPointer
+      * @brief Fill reconstructed particles from DELPHI data
       * 
-      * Retrieves an existing EDM4hep vertex associated with the given ZebraPointer,
-      * or creates a new one if it doesn't exist in the map.
+      * Processes DELPHI reconstructed particle data structures and creates
+      * corresponding EDM4hep reconstructed particles.
+      */
+     void fillRecoParticles();
+
+     /**
+      * @brief Fill Monte Carlo particles from DELPHI data
+      * 
+      * Processes DELPHI Monte Carlo particle data structures and creates
+      * corresponding EDM4hep MC particles.
+      */
+     void fillMCParticles();
+
+     /**
+      * @brief Fill associations between MC and reconstructed particles
+      * 
+      * Creates associations between Monte Carlo particles and reconstructed
+      * particles in the EDM4hep format.
+      */
+     void fillMCRecoParticleAssociations();
+
+    /**
+     * @brief Fill BTagging information from DELPHI data    
+     * 
+     */
+     void fillBTagging();
+
+     /**
+      * @brief Fix secondary hadronic interactions in DELPHI data
+      * 
+      * Applies corrections for secondary hadronic interactions in the
+      * DELPHI detector simulation data.
+      */
+     void fixSecondaryHadronicInteractions();
+
+     /**
+      * @brief Find vertex index by ZebraPointer
+      * 
+      * Searches for the index of an EDM4hep vertex associated with the given ZebraPointer.
       * 
       * @param zebra_ptr ZebraPointer to the DELPHI vertex data
-      * @return Reference to the MutableVertex (guaranteed to be valid)
+      * @return Index in vertex collection (0-based), or -1 if not found
       * 
-      * @note The returned reference remains valid until the map is cleared
-      * @note Uses unique_ptr internally for automatic memory management
+      * @note Use this with (*vertex_collection_)[index] to access the vertex
       */
+     int findVertexIndex(const phdst::ZebraPointer& zebra_ptr) const;
 
 private:
     std::string output_path_ = "";           ///< Output file path for EDM4hep data
+    
+    // Configuration flags
+    bool fix_secondary_hadronic_interactions_ = true;  ///< Enable/disable secondary hadronic interaction fixes
     
     // Current run tracking
     int current_run_ = 0;                  ///< Current run number being processed
@@ -245,7 +302,17 @@ private:
     std::unique_ptr<podio::ROOTWriter> writer_;                                ///< ROOT file writer for EDM4hep output
     std::unique_ptr<edm4hep::EventHeaderCollection> event_header_collection_; ///< Standard EDM4hep event header collection
     std::unique_ptr<edm4delphi::EventHeaderCollection> delphi_event_header_collection_; ///< DELPHI-specific event header collection with extended metadata
-    // ZebraPointer to EDM4hep object mapping
-    std::map<phdst::ZebraPointer, std::unique_ptr<edm4hep::MutableVertex>> vertex_map_; ///< Map from DELPHI Zebra pointers to EDM4hep vertices
+    std::unique_ptr<edm4hep::VertexCollection> vertex_collection_; ///< Collection of vertices
+    std::unique_ptr<edm4hep::ReconstructedParticleCollection> reco_particle_collection_; ///< Collection of reconstructed particles
+    std::map<phdst::ZebraPointer, std::unique_ptr<edm4hep::VertexCollection>> vertex_map_; ///< Map from DELPHI Zebra pointers to EDM4hep vertices
+    std::map<phdst::ZebraPointer, std::unique_ptr<edm4hep::ReconstructedParticleCollection>> reco_particle_map_; ///< Map from DELPHI Zebra pointers to EDM4hep reconstructed particles
+    std::unique_ptr<edm4hep::MCParticleCollection> mc_particle_collection_; ///< Collection of Monte Carlo particles
+    std::unique_ptr<edm4hep::MCRecoParticleAssociationCollection> mc_reco_particle_association_collection_; ///< Association collection between MC particles and reconstructed particles
 
+    std::vector<phdst::ZebraPointer> vertex_ptrs_; ///< Collection of ZebraPointers for event processing
+    std::vector<phdst::ZebraPointer> reco_particle_ptrs_; ///< Collection of ZebraPointers for reconstructed particles
+    
+    // Mapping from ZebraPointer to collection indices for efficient lookup
+    std::unordered_map<phdst::ZebraPointer, size_t> zebra_to_vertex_index_; ///< Map from ZebraPointer to vertex index in collection
+    std::unordered_map<phdst::ZebraPointer, size_t> zebra_to_reco_particle_index_; ///< Map from ZebraPointer to reco particle index in collection
 };

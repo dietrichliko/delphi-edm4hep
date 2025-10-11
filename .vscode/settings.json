@@ -95,7 +95,6 @@
         "cschlosser.doxdocgen": ["workspace"],
         "mkhl.direnv": ["workspace"],
         "formulahendry.code-runner": ["workspace"],
-        "redhat.vscode-yaml": ["workspace"],
         "github.vscode-github-actions": ["workspace"]
     }
 }
