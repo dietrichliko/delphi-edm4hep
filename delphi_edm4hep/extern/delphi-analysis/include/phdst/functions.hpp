@@ -31,7 +31,7 @@ namespace phdst
     {
         char c_name[name.size()];
         size_t len = name.size();
-        std::strncpy(c_name, name.c_str(), len);
+        std::memcpy(c_name, name.data(), len);
         phdst_(c_name, &n, &m, len);
     }
 
@@ -39,7 +39,7 @@ namespace phdst
     {
         char c_name[name.size()];
         size_t len = name.size();
-        std::strncpy(c_name, name.c_str(), len);
+        std::memcpy(c_name, name.data(), len);
         phset_(c_name, &n, len);
     }
 
@@ -62,7 +62,7 @@ namespace phdst
     {
         char c_name[name.size()];
         size_t len = name.size();
-        std::strncpy(c_name, name.c_str(), len);
+        std::memcpy(c_name, name.data(), len);
         return iphpic_(c_name, &n, len);
     }
 
